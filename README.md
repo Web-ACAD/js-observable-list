@@ -169,7 +169,7 @@ export class UsersRepository implements ObservableRepository<User>
     // ...
     
     constructor(
-    	private http: HttpClient,
+        private http: HttpClient,
     ) {}
     
     public insert(user: User): Observable<User>
@@ -177,14 +177,14 @@ export class UsersRepository implements ObservableRepository<User>
         this.onInserted.emit(user);
         
         return this.http.post('/users', {
-        	email: user.email,
-        	password: user.password,
+            email: user.email,
+            password: user.password,
         }).pipe(
-        	map((data) => this.mapDataToEntity(data)),
-        	tap((newUser) => this.onReplaced.emit({
-        		previous: user,
-        		next: newUser,
-        	})),
+            map((data) => this.mapDataToEntity(data)),
+            tap((newUser) => this.onReplaced.emit({
+                previous: user,
+                next: newUser,
+            })),
         );
     }
     
