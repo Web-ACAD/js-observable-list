@@ -26,6 +26,8 @@ export class ObservableList<T extends ObservableEntity>
 
 	private onRemovedSubscription: Subscription;
 
+	private onReplacedSubscriction: Subscription;
+
 
 	constructor(
 		private $repository: ObservableRepository<T>,
@@ -48,6 +50,7 @@ export class ObservableList<T extends ObservableEntity>
 			this.onInsertedSubscription.unsubscribe();
 			this.onUpdatedSubscription.unsubscribe();
 			this.onRemovedSubscription.unsubscribe();
+			this.onReplacedSubscriction.unsubscribe();
 
 			this.list = undefined;
 		}
@@ -93,6 +96,23 @@ export class ObservableList<T extends ObservableEntity>
 
 			if (pos >= 0) {
 				collection.splice(pos, 1);
+				subject.next(collection);
+			}
+		});
+
+		this.onReplacedSubscriction = this.$repository.onReplaced.subscribe((data) => {
+			let found: number;
+
+			// compare by ids to be able to use immutable entities
+			for (let i = 0; i < collection.length; i++) {
+				if (data.previous === collection[i]) {
+					found = i;
+					break;
+				}
+			}
+
+			if (typeof found !== 'undefined') {
+				collection[found] = data.next;
 				subject.next(collection);
 			}
 		});

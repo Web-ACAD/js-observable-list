@@ -47,10 +47,11 @@ Each observable repository needs to manage three event emitters:
 * `onInserted`: emit newly inserted entity
 * `onUpdated`: emit updated entity (emit new entity for immutable entities)
 * `onRemoved`: emit removed entity
+* `onReplaced`: emit replacement of entity (must provide previous and next versions)
 
 ```typescript
 import {Injectable, EventEmitter} from '@angular/core';
-import {ObservableRepository} from '@webacad/observable-list';
+import {ObservableRepository, ObservableReplacedEntity} from '@webacad/observable-list';
 import {Observable} from 'rxjs/Observable';
 import {from as ObservableFrom} from 'rxjs/observable/from';
 import {User} from './user';
@@ -64,6 +65,8 @@ export class UsersRepository implements ObservableRepository<User>
     public onUpdated = new EventEmitter<User>();
     
     public onRemoved = new EventEmitter<User>();
+    
+    public onReplaced = new EventEmitter<ObservableReplacedEntity<User>>();
     
     public getAll(): Observable<Array<User>>
     {
@@ -144,6 +147,53 @@ or
 ```html
 <mat-table [dataSource]="usersDataSource">...</mat-table>
 ```
+
+## Immediate refresh without waiting for the backend
+
+Imagine that you have a "add form" for your user and you want to show the new user row immediately after clicking on the 
+save button. 
+
+You could use the `onInserted` event alone, but after the "real" data is loaded from your API, you'll have no way of 
+replacing the previous previous.
+
+Instead you can use the combination of `onInserted` and `onReplaced`. 
+
+```typescript
+import {HttpClient} from '@angular/common/http';
+import {map, tap} from 'rxjs/operators';
+
+@Injectable()
+export class UsersRepository implements ObservableRepository<User>
+{
+    
+    // ...
+    
+    constructor(
+    	private http: HttpClient,
+    ) {}
+    
+    public insert(user: User): Observable<User>
+    {
+        this.onInserted.emit(user);
+        
+        return this.http.post('/users', {
+        	email: user.email,
+        	password: user.password,
+        }).pipe(
+        	map((data) => this.mapDataToEntity(data)),
+        	tap((newUser) => this.onReplaced.emit({
+        		previous: user,
+        		next: newUser,
+        	})),
+        );
+    }
+    
+    // ...
+    
+}
+``` 
+
+Just keep in mind, that the first version of user will probably not have any ID available.
 
 ## Filter inserted users
 

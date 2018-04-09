@@ -156,6 +156,52 @@ describe('#ObservableList', () => {
 
 	});
 
+	describe('onReplacedSubscription()', () => {
+
+		it('should not emit new collection if replaced entity is not in previous collection', () => {
+			const subject = list.initList(ObservableFrom([]));
+			const collections: Array<Array<ObservableEntityMock>> = [];
+
+			subject.subscribe((collection) => {
+				collections.push(cloneCollection(collection));
+			});
+
+			repository.replace(new ObservableEntityMock(1), new ObservableEntityMock(1));
+
+			expect(collections).to.be.eql([
+				[],
+			]);
+		});
+
+		it('should emit new collection if entity was replaced', () => {
+			const entity1 = new ObservableEntityMock(1);
+			const entity2 = new ObservableEntityMock(2);
+			const entity3 = new ObservableEntityMock(3);
+
+			const entity2_updated = new ObservableEntityMock(22);
+
+			const subject = list.initList(ObservableFrom([[
+				entity1,
+				entity2,
+				entity3,
+			]]));
+
+			const collections: Array<Array<ObservableEntityMock>> = [];
+
+			subject.subscribe((collection) => {
+				collections.push(cloneCollection(collection));
+			});
+
+			repository.replace(entity2, entity2_updated);
+
+			expect(collections).to.be.eql([
+				[entity1, entity2, entity3],
+				[entity1, entity2_updated, entity3],
+			]);
+		});
+
+	});
+
 	describe('disconnect()', () => {
 
 		it('should disconnect all event emitters from repository', () => {

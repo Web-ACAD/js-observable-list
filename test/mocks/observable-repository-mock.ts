@@ -1,6 +1,6 @@
 import {EventEmitter} from '@angular/core';
 
-import {ObservableRepository} from '../../src';
+import {ObservableRepository, ObservableReplacedEntity} from '../../src';
 import {ObservableEntityMock} from './observable-entity-mock';
 
 
@@ -13,6 +13,8 @@ export class ObservableRepositoryMock implements ObservableRepository<Observable
 	public onUpdated: EventEmitter<ObservableEntityMock> = new EventEmitter<ObservableEntityMock>();
 
 	public onRemoved: EventEmitter<ObservableEntityMock> = new EventEmitter<ObservableEntityMock>();
+
+	public onReplaced: EventEmitter<ObservableReplacedEntity<ObservableEntityMock>> = new EventEmitter<ObservableReplacedEntity<ObservableEntityMock>>();
 
 
 	public insert(entity: ObservableEntityMock): void
@@ -30,6 +32,15 @@ export class ObservableRepositoryMock implements ObservableRepository<Observable
 	public remove(entity: ObservableEntityMock): void
 	{
 		this.onRemoved.emit(entity);
+	}
+
+
+	public replace(previous: ObservableEntityMock, next: ObservableEntityMock): void
+	{
+		this.onReplaced.emit({
+			previous: previous,
+			next: next,
+		});
 	}
 
 }
