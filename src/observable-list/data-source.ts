@@ -39,7 +39,7 @@ export class ObservableDataSource<T extends ObservableEntity> implements DataSou
 
 	private shouldIncludeNewEntity: ShouldIncludeNewEntity<T>;
 
-	private trackBy: ObservableDataSourceTrackBy<T>;
+	public readonly trackBy: ObservableDataSourceTrackBy<T>;
 
 
 	constructor(
