@@ -33,16 +33,14 @@ import {ObservableEntity} from '@webacad/observable-list';
 export class User implements ObservableEntity
 {
     
-    constructor(
-        public readonly id: string,
-    ) {}
+    public id: number;
     
 }
 ```
 
 **Update `users-repository.service.ts`:**
 
-Each observable repository needs to manage three event emitters:
+Each observable repository needs to manage four event emitters:
 
 * `onInserted`: emit newly inserted entity
 * `onUpdated`: emit updated entity (emit new entity for immutable entities)
@@ -98,54 +96,93 @@ export class UsersRepository implements ObservableRepository<User>
 }
 ```
 
-**Create data source for cdk table `users-data-source.service.ts`:**
-
 Now you only need to create the data source for your table with users.
 
 ```typescript
-import {DataSource} from '@angular/cdk/collections';
-import {ObservableList} from '@webacad/observable-list';
-import {Observable} from 'rxjs/Observable';
+import {Component, OnInit} from '@angular/core';
+import {ObservableDataSource, createObservableDataSource} from '@webacad/observable-list';
 import {UsersRepository} from '../users-repository.service';
 import {User} from '../user';
 
-export class UsersDataSource implements DataSource<User>
+@Component({
+    selector: 'add-users-table',
+    templateUrl: './users-table.component.html',
+})
+export class UsersTable
 {
 
-    private source: ObservableList<User>;
+    public dataSource: ObservableDataSource<User>;
     
     constructor(
-        private users: UsersRepository, 
-    ) {}
-
-    public connect(): Observable<Array<User>>
-    {
-        this.source = new ObservableList(this.users);
-        return this.source.initList(this.users.getAll());
+        private users: UsersRepository,
+    ) {
+        this.createDataSource();
     }
-
-    public disconnect(): void
+    
+    private createDataSource(): void
     {
-        if (this.source) {
-            this.source.disconnect();
-        }
+        this.dataSource = createObservableDataSource(this.users, this.users.getAll());
     }
     
 }
 ```
 
-The `source` in your new `UsersDataSource` will be automatically updated whenever you insert, update or remove any user.
+The `createObservableDataSource` function returns `DataSource` from `@angular/cdk` with all necessary configuration.
 
-Just use that `UsersDataSource` either in `cdk-table` or in `mat-table` components:
+The first argument must be an `ObservableRepository` and the second `Observable<Array<any>>` with your data.
+
+Now just use your new data source with either `cdk-table` or `mat-table`:
 
 ```html
-<cdk-table [dataSource]="usersDataSource">...</cdk-table>
+<cdk-table [dataSource]="dataSource">...</cdk-table>
 ```
 
 or
 
 ```html
-<mat-table [dataSource]="usersDataSource">...</mat-table>
+<mat-table [dataSource]="dataSource">...</mat-table>
+```
+
+## Filter newly inserted entities
+
+By default all newly created entities will appear in the data source. That behavior can be changed by providing the 
+`options` for `createObservableDataSource`.
+
+```typescript
+createObservableDataSource(this.users, this.users.getAll(), {
+    shouldIncludeNewEntity: (user: User) => {
+        return user.id === 5;
+    },
+});
+```
+
+Now only users with ID `5` will be appended.
+
+## Track by - performance improvements
+
+Read more about `trackBy` in [angular documentation](https://angular.io/api/common/NgForOf#change-propagation).
+
+This library provides you with default `trackBy` function which is using the ID's of your entities. If you wish to 
+change it to something else, use the `options` for `createObservableDataSource` again.
+
+```typescript
+createObservableDataSource(this.users, this.users.getAll(), {
+    trackBy: (i: number, user: User) => {
+        return user.uuid;
+    },
+});
+```
+
+You must set the `[trackBy]` in your template, otherwise angular will use it's own default implementation:
+
+```html
+<cdk-table [dataSource]="dataSource" [trackBy]="dataSource.trackBy">...</cdk-table>
+```
+
+or
+
+```html
+<mat-table [dataSource]="dataSource" [trackBy]="dataSource.trackBy">...</mat-table>
 ```
 
 ## Immediate refresh without waiting for the backend
@@ -154,7 +191,7 @@ Imagine that you have a "add form" for your user and you want to show the new us
 save button. 
 
 You could use the `onInserted` event alone, but after the "real" data is loaded from your API, you'll have no way of 
-replacing the previous previous.
+replacing the previous entity.
 
 Instead you can use the combination of `onInserted` and `onReplaced`. 
 
@@ -194,34 +231,3 @@ export class UsersRepository implements ObservableRepository<User>
 ``` 
 
 Just keep in mind, that the first version of user will probably not have any ID available.
-
-## Filter inserted users
-
-By default all new users will appear in your browse list. That can be changed in the `UsersDataSource`:
-
-```typescript
-import {DataSource} from '@angular/cdk/collections';
-import {ObservableList} from '@webacad/observable-list';
-import {Observable} from 'rxjs/Observable';
-import {UsersRepository} from '../users-repository.service';
-import {User} from '../user';
-
-export class UsersDataSource implements DataSource<User>
-{
-
-    // ...
-
-    public connect(): Observable<Array<User>>
-    {
-        this.source = new ObservableList(this.users);
-        return this.source.initList(this.users.getAll(), (newEntity: User) => {
-            return newEntity.id === 5;
-        });
-    }
-    
-    // ...
-    
-}
-```
-
-Table with the `UsersDataSource` from above example will show new users only if they id is equal to `5`.
