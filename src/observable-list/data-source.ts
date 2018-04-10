@@ -27,6 +27,10 @@ export function createObservableDataSource<T extends ObservableEntity>(
 
 function defaultTrackByObservableEntity<T extends ObservableEntity>(i: number, entity: T): any
 {
+	if (typeof entity.id === 'undefined') {
+		return i;
+	}
+
 	return entity.id;
 }
 
