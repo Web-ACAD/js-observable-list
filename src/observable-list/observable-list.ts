@@ -103,7 +103,6 @@ export class ObservableList<T extends ObservableEntity>
 		this.onReplacedSubscriction = this.$repository.onReplaced.subscribe((data) => {
 			let found: number;
 
-			// compare by ids to be able to use immutable entities
 			for (let i = 0; i < collection.length; i++) {
 				if (data.previous === collection[i]) {
 					found = i;
