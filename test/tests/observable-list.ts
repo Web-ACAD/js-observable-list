@@ -3,6 +3,7 @@ import {ObservableRepositoryMock, ObservableEntityMock} from '../mocks';
 import {expect} from 'chai';
 import {from as ObservableFrom} from 'rxjs/observable/from';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
+import {map} from 'rxjs/operators';
 
 
 let repository: ObservableRepositoryMock;
@@ -263,6 +264,43 @@ describe('#ObservableList', () => {
 			expect(collections).to.be.eql([
 				[entity_1, entity_2],
 				[entity_3, entity_4],
+			]);
+		});
+
+	});
+
+	describe('modify()', () => {
+
+		it('should modify items', () => {
+			const items = [
+				new ObservableEntityMock(1),
+				new ObservableEntityMock(2),
+				new ObservableEntityMock(3),
+				new ObservableEntityMock(4),
+			];
+
+			const collections: Array<Array<ObservableEntityMock>> = [];
+			const subject = list.initList(ObservableFrom([
+				[items[0], items[1]],
+			]));
+
+			subject.subscribe((collection) => {
+				collections.push(cloneCollection(collection));
+			});
+
+			expect(collections).to.be.eql([
+				[items[0], items[1]],
+			]);
+
+			list.modify((observableItems) => {
+				return observableItems.pipe(
+					map((item) => items[item.id + 1]),
+				);
+			});
+
+			expect(collections).to.be.eql([
+				[items[0], items[1]],
+				[items[2], items[3]],
 			]);
 		});
 

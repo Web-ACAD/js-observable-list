@@ -241,3 +241,13 @@ dataSource.reload(users.getAll());
 ```
 
 The `reload` method accepts a new `Observable<Array<any>>` type.
+
+## Modify current data
+
+```typescript
+dataSource.modify((items: Observable<User>) => {
+    return items.pipe(
+        map((user) => user.update()),
+    );
+});
+```

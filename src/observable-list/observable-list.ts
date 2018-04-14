@@ -1,5 +1,6 @@
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 import {Observable} from 'rxjs/Observable';
+import {from as ObservableFrom} from 'rxjs/observable/from';
 import {Subscription} from 'rxjs/Subscription';
 
 import {ObservableEntity} from './observable-entity';
@@ -70,6 +71,24 @@ export class ObservableList<T extends ObservableEntity>
 				this.subject.next(this.data);
 			}
 		});
+	}
+
+
+	public modify(items: (data: Observable<T>) => Observable<T>): void
+	{
+		let observable = ObservableFrom(this.data);
+		const newData: Array<T> = [];
+
+		observable = items(observable);
+		observable.subscribe((item) => {
+			newData.push(item);
+		});
+
+		this.data = newData;
+
+		if (this.subject) {
+			this.subject.next(this.data);
+		}
 	}
 
 

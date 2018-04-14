@@ -80,4 +80,12 @@ export class ObservableDataSource<T extends ObservableEntity> implements DataSou
 		}
 	}
 
+
+	public modify(items: (data: Observable<T>) => Observable<T>): void
+	{
+		if (this.list) {
+			this.list.modify(items);
+		}
+	}
+
 }
