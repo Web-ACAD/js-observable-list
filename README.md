@@ -228,6 +228,16 @@ export class UsersRepository implements ObservableRepository<User>
     // ...
     
 }
-``` 
+```
 
 Just keep in mind, that the first version of user will probably not have any ID available.
+
+## Reload all data
+
+If you wish to refresh all data inside of your table, you can simply reuse the existing data source with the new data.
+
+```typescript
+dataSource.reload(users.getAll());
+```
+
+The `reload` method accepts a new `Observable<Array<any>>` type.

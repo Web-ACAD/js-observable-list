@@ -1,5 +1,6 @@
 import {DataSource, CollectionViewer} from '@angular/cdk/collections';
 import {Observable} from 'rxjs/Observable';
+import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 
 import {ObservableEntity} from './observable-entity';
 import {ObservableList, ShouldIncludeNewEntity} from './observable-list';
@@ -56,10 +57,10 @@ export class ObservableDataSource<T extends ObservableEntity> implements DataSou
 	}
 
 
-	public connect(collectionViewer: CollectionViewer): Observable<Array<T>>
+	public connect(collectionViewer: CollectionViewer): BehaviorSubject<Array<T>>
 	{
-		this.list = new ObservableList<T>(this.repository);
-		return this.list.initList(this.data, this.shouldIncludeNewEntity);
+		this.list = new ObservableList<T>(this.repository, this.shouldIncludeNewEntity);
+		return this.list.initList(this.data);
 	}
 
 
@@ -68,6 +69,14 @@ export class ObservableDataSource<T extends ObservableEntity> implements DataSou
 		if (this.list) {
 			this.list.disconnect();
 			this.list = undefined;
+		}
+	}
+
+
+	public reload(data: Observable<Array<T>>): void
+	{
+		if (this.list) {
+			this.list.reload(data);
 		}
 	}
 

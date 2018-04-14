@@ -18,8 +18,6 @@ export class ObservableList<T extends ObservableEntity>
 {
 
 
-	private list: BehaviorSubject<Array<T>>;
-
 	private onInsertedSubscription: Subscription;
 
 	private onUpdatedSubscription: Subscription;
@@ -28,49 +26,66 @@ export class ObservableList<T extends ObservableEntity>
 
 	private onReplacedSubscriction: Subscription;
 
+	private data: Array<T> = [];
+
+	private subject: BehaviorSubject<Array<T>>;
+
 
 	constructor(
 		private $repository: ObservableRepository<T>,
+		private shouldIncludeNewEntity: ShouldIncludeNewEntity<T> = defaultShouldIncludeNewEntity,
 	) {}
 
 
-	public initList(list: Observable<Array<T>>, shouldIncludeNewEntity: ShouldIncludeNewEntity<T> = defaultShouldIncludeNewEntity): BehaviorSubject<Array<T>>
+	public initList(data: Observable<Array<T>>): BehaviorSubject<Array<T>>
 	{
-		if (this.list) {
+		if (this.subject) {
 			this.disconnect();
 		}
 
-		return this.list = this.createList(list, shouldIncludeNewEntity);
+		return this.createList(data);
 	}
 
 
 	public disconnect(): void
 	{
-		if (this.list) {
+		if (this.subject) {
 			this.onInsertedSubscription.unsubscribe();
 			this.onUpdatedSubscription.unsubscribe();
 			this.onRemovedSubscription.unsubscribe();
 			this.onReplacedSubscriction.unsubscribe();
 
-			this.list = undefined;
+			this.data = [];
+			this.subject = undefined;
 		}
 	}
 
 
-	private createList(list: Observable<Array<T>>, shouldIncludeNewEntity: ShouldIncludeNewEntity<T>): BehaviorSubject<Array<T>>
+	public reload(data: Observable<Array<T>>): void
 	{
-		let collection: Array<T> = [];
-		const subject = new BehaviorSubject(collection);
+		data.subscribe((currentData) => {
+			this.data = currentData;
 
-		list.subscribe((currentData) => {
-			collection = currentData;
-			subject.next(collection);
+			if (this.subject) {
+				this.subject.next(this.data);
+			}
+		});
+	}
+
+
+	private createList(data: Observable<Array<T>>): BehaviorSubject<Array<T>>
+	{
+		this.subject = new BehaviorSubject<Array<T>>(this.data);
+
+		data.subscribe((currentData) => {
+			this.data = currentData;
+			this.subject.next(this.data);
 		});
 
 		this.onInsertedSubscription = this.$repository.onInserted.subscribe((item) => {
-			if (shouldIncludeNewEntity(item)) {
-				collection.push(item);
-				subject.next(collection);
+			if (this.shouldIncludeNewEntity(item)) {
+				this.data.push(item);
+				this.subject.next(this.data);
 			}
 		});
 
@@ -78,45 +93,45 @@ export class ObservableList<T extends ObservableEntity>
 			let found: number;
 
 			// compare by ids to be able to use immutable entities
-			for (let i = 0; i < collection.length; i++) {
-				if (item.id === collection[i].id) {
+			for (let i = 0; i < this.data.length; i++) {
+				if (item.id === this.data[i].id) {
 					found = i;
 					break;
 				}
 			}
 
 			if (typeof found !== 'undefined') {
-				collection[found] = item;
-				subject.next(collection);
+				this.data[found] = item;
+				this.subject.next(this.data);
 			}
 		});
 
 		this.onRemovedSubscription = this.$repository.onRemoved.subscribe((item) => {
-			const pos = collection.indexOf(item);
+			const pos = this.data.indexOf(item);
 
 			if (pos >= 0) {
-				collection.splice(pos, 1);
-				subject.next(collection);
+				this.data.splice(pos, 1);
+				this.subject.next(this.data);
 			}
 		});
 
-		this.onReplacedSubscriction = this.$repository.onReplaced.subscribe((data) => {
+		this.onReplacedSubscriction = this.$repository.onReplaced.subscribe((item) => {
 			let found: number;
 
-			for (let i = 0; i < collection.length; i++) {
-				if (data.previous === collection[i]) {
+			for (let i = 0; i < this.data.length; i++) {
+				if (item.previous === this.data[i]) {
 					found = i;
 					break;
 				}
 			}
 
 			if (typeof found !== 'undefined') {
-				collection[found] = data.next;
-				subject.next(collection);
+				this.data[found] = item.next;
+				this.subject.next(this.data);
 			}
 		});
 
-		return subject;
+		return this.subject;
 	}
 
 }

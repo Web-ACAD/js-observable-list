@@ -53,7 +53,9 @@ describe('#ObservableList', () => {
 		});
 
 		it('should should not insert new entity into collection', () => {
-			const subject = list.initList(ObservableFrom([]), (newEntity) => newEntity.id === 2);
+			list = new ObservableList<ObservableEntityMock>(repository, (newEntity) => newEntity.id === 2);
+
+			const subject = list.initList(ObservableFrom([]));
 			const collections: Array<Array<ObservableEntityMock>> = [];
 
 			subject.subscribe((collection) => {
@@ -222,6 +224,45 @@ describe('#ObservableList', () => {
 
 			expect(collections).to.be.eql([
 				[],
+			]);
+		});
+
+	});
+
+	describe('reload()', () => {
+
+		it('should refresh all data', () => {
+			const entity_1 = new ObservableEntityMock(1);
+			const entity_2 = new ObservableEntityMock(2);
+			const entity_3 = new ObservableEntityMock(3);
+			const entity_4 = new ObservableEntityMock(4);
+
+			const collections: Array<Array<ObservableEntityMock>> = [];
+			const subject = list.initList(ObservableFrom([
+				[
+					entity_1,
+					entity_2,
+				],
+			]));
+
+			subject.subscribe((collection) => {
+				collections.push(cloneCollection(collection));
+			});
+
+			expect(collections).to.be.eql([
+				[entity_1, entity_2],
+			]);
+
+			list.reload(ObservableFrom([
+				[
+					entity_3,
+					entity_4,
+				],
+			]));
+
+			expect(collections).to.be.eql([
+				[entity_1, entity_2],
+				[entity_3, entity_4],
 			]);
 		});
 
