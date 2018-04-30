@@ -1,9 +1,10 @@
+import {EventEmitter} from '@angular/core';
 import {DataSource, CollectionViewer} from '@angular/cdk/collections';
 import {Observable} from 'rxjs/Observable';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 
 import {ObservableEntity} from './observable-entity';
-import {ObservableList, ShouldIncludeNewEntity} from './observable-list';
+import {ObservableList, ShouldIncludeNewEntity, OnReplacedArg} from './observable-list';
 import {ObservableRepository} from './observable-repository';
 
 
@@ -21,7 +22,7 @@ export function createObservableDataSource<T extends ObservableEntity>(
 	repository: ObservableRepository<T>,
 	data: Observable<Array<T>>,
 	options: ObservableDataSourceOptions<T> = {},
-): any {
+): ObservableDataSource<T> {
 	return new ObservableDataSource(repository, data, options);
 }
 
@@ -57,6 +58,34 @@ export class ObservableDataSource<T extends ObservableEntity> implements DataSou
 	}
 
 
+	get onInserted(): EventEmitter<T>
+	{
+		this.checkList();
+		return this.list.onInserted;
+	}
+
+
+	get onUpdated(): EventEmitter<T>
+	{
+		this.checkList();
+		return this.list.onUpdated;
+	}
+
+
+	get onRemoved(): EventEmitter<T>
+	{
+		this.checkList();
+		return this.list.onRemoved;
+	}
+
+
+	get onReplaced(): EventEmitter<OnReplacedArg<T>>
+	{
+		this.checkList();
+		return this.list.onReplaced;
+	}
+
+
 	public connect(collectionViewer: CollectionViewer): BehaviorSubject<Array<T>>
 	{
 		this.list = new ObservableList<T>(this.repository, this.shouldIncludeNewEntity);
@@ -85,6 +114,14 @@ export class ObservableDataSource<T extends ObservableEntity> implements DataSou
 	{
 		if (this.list) {
 			this.list.modify(items);
+		}
+	}
+
+
+	private checkList(): void
+	{
+		if (!this.list) {
+			throw new Error('List is not ready');
 		}
 	}
 

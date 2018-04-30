@@ -251,3 +251,12 @@ dataSource.modify((items: Observable<User>) => {
     );
 });
 ```
+
+## Listen to changes
+
+There are multiple events available on the data source class which could be used for listening to changes in data.
+
+* `onInserted<EventEmitter<T>>`: emitted when new item is added to data
+* `onUpdated<EventEmitter<T>>`: emitted when some item was updated by ID
+* `onRemoved<EventEmitter<T>>`: emitted when an item was removed from data
+* `onReplaced<EventEmitter<OnReplacedArg<T>>>`: emitted when an item was replaced 

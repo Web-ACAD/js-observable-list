@@ -1,3 +1,4 @@
+import {EventEmitter} from '@angular/core';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 import {Observable} from 'rxjs/Observable';
 import {from as ObservableFrom} from 'rxjs/observable/from';
@@ -6,6 +7,12 @@ import {Subscription} from 'rxjs/Subscription';
 import {ObservableEntity} from './observable-entity';
 import {ObservableRepository} from './observable-repository';
 
+
+export declare interface OnReplacedArg<T extends ObservableEntity>
+{
+	previous: T,
+	next: T,
+}
 
 export declare type ShouldIncludeNewEntity<T extends ObservableEntity> = (newEntity: T) => boolean;
 
@@ -18,6 +25,14 @@ function defaultShouldIncludeNewEntity(): boolean
 export class ObservableList<T extends ObservableEntity>
 {
 
+
+	public onInserted: EventEmitter<T> = new EventEmitter<T>();
+
+	public onUpdated: EventEmitter<T> = new EventEmitter<T>();
+
+	public onRemoved: EventEmitter<T> = new EventEmitter<T>();
+
+	public onReplaced: EventEmitter<OnReplacedArg<T>> = new EventEmitter<OnReplacedArg<T>>();
 
 	private onInsertedSubscription: Subscription;
 
@@ -105,6 +120,7 @@ export class ObservableList<T extends ObservableEntity>
 			if (this.shouldIncludeNewEntity(item)) {
 				this.data.push(item);
 				this.subject.next(this.data);
+				this.onInserted.emit(item);
 			}
 		});
 
@@ -122,6 +138,7 @@ export class ObservableList<T extends ObservableEntity>
 			if (typeof found !== 'undefined') {
 				this.data[found] = item;
 				this.subject.next(this.data);
+				this.onUpdated.emit(item);
 			}
 		});
 
@@ -129,8 +146,10 @@ export class ObservableList<T extends ObservableEntity>
 			const pos = this.data.indexOf(item);
 
 			if (pos >= 0) {
+				const item = this.data[pos];
 				this.data.splice(pos, 1);
 				this.subject.next(this.data);
+				this.onRemoved.emit(item);
 			}
 		});
 
@@ -147,6 +166,10 @@ export class ObservableList<T extends ObservableEntity>
 			if (typeof found !== 'undefined') {
 				this.data[found] = item.next;
 				this.subject.next(this.data);
+				this.onReplaced.emit({
+					previous: item.previous,
+					next: item.next,
+				});
 			}
 		});
 
