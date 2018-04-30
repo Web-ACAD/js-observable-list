@@ -1,7 +1,7 @@
 {
 	"name": "@webacad/observable-list",
 	"description": "Automatic observable list for angular cdk table",
-	"version": "1.4.0",
+	"version": "1.4.1",
 	"keywords": [
 		"angular",
 		"repository",
