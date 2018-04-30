@@ -27,7 +27,7 @@
 	"peerDependencies": {
 		"@angular/cdk": ">=5.0.0",
 		"@angular/core": ">=5.0.0",
-		"rxjs": ">=5.5.7"
+		"rxjs": "^5.5.0"
 	},
 	"devDependencies": {
 		"@types/chai": "^4.1.2",
