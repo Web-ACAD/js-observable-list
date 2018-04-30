@@ -41,6 +41,14 @@ export class ObservableDataSource<T extends ObservableEntity> implements DataSou
 {
 
 
+	public readonly onInserted: EventEmitter<T> = new EventEmitter<T>();
+
+	public readonly onUpdated: EventEmitter<T> = new EventEmitter<T>();
+
+	public readonly onRemoved: EventEmitter<T> = new EventEmitter<T>();
+
+	public readonly onReplaced: EventEmitter<OnReplacedArg<T>> = new EventEmitter<OnReplacedArg<T>>();
+
 	public readonly trackBy: ObservableDataSourceTrackBy<T>;
 
 	private list: ObservableList<T>;
@@ -58,37 +66,15 @@ export class ObservableDataSource<T extends ObservableEntity> implements DataSou
 	}
 
 
-	get onInserted(): EventEmitter<T>
-	{
-		this.checkList();
-		return this.list.onInserted;
-	}
-
-
-	get onUpdated(): EventEmitter<T>
-	{
-		this.checkList();
-		return this.list.onUpdated;
-	}
-
-
-	get onRemoved(): EventEmitter<T>
-	{
-		this.checkList();
-		return this.list.onRemoved;
-	}
-
-
-	get onReplaced(): EventEmitter<OnReplacedArg<T>>
-	{
-		this.checkList();
-		return this.list.onReplaced;
-	}
-
-
 	public connect(collectionViewer: CollectionViewer): BehaviorSubject<Array<T>>
 	{
 		this.list = new ObservableList<T>(this.repository, this.shouldIncludeNewEntity);
+
+		this.list.onInserted.subscribe((item) => this.onInserted.emit(item));
+		this.list.onUpdated.subscribe((item) => this.onUpdated.emit(item));
+		this.list.onRemoved.subscribe((item) => this.onRemoved.emit(item));
+		this.list.onReplaced.subscribe((item) => this.onReplaced.emit(item));
+
 		return this.list.initList(this.data);
 	}
 

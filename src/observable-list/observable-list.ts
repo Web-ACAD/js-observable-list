@@ -146,7 +146,6 @@ export class ObservableList<T extends ObservableEntity>
 			const pos = this.data.indexOf(item);
 
 			if (pos >= 0) {
-				const item = this.data[pos];
 				this.data.splice(pos, 1);
 				this.subject.next(this.data);
 				this.onRemoved.emit(item);
