@@ -1,7 +1,6 @@
 import {EventEmitter} from '@angular/core';
 import {DataSource, CollectionViewer} from '@angular/cdk/collections';
-import {Observable} from 'rxjs/Observable';
-import {BehaviorSubject} from 'rxjs/BehaviorSubject';
+import {Observable, BehaviorSubject} from 'rxjs';
 
 import {ObservableEntity} from './observable-entity';
 import {ObservableList, ShouldIncludeNewEntity, OnReplacedArg} from './observable-list';

@@ -1,8 +1,7 @@
 import {ObservableList} from '../../src';
 import {ObservableRepositoryMock, ObservableEntityMock} from '../mocks';
 import {expect} from 'chai';
-import {from as ObservableFrom} from 'rxjs/observable/from';
-import {BehaviorSubject} from 'rxjs/BehaviorSubject';
+import {BehaviorSubject, from as ObservableFrom} from 'rxjs';
 import {map} from 'rxjs/operators';
 
 

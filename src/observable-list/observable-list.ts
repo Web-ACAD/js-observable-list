@@ -1,8 +1,5 @@
 import {EventEmitter} from '@angular/core';
-import {BehaviorSubject} from 'rxjs/BehaviorSubject';
-import {Observable} from 'rxjs/Observable';
-import {from as ObservableFrom} from 'rxjs/observable/from';
-import {Subscription} from 'rxjs/Subscription';
+import {Observable, Subscription, BehaviorSubject, from as ObservableFrom} from 'rxjs';
 
 import {ObservableEntity} from './observable-entity';
 import {ObservableRepository} from './observable-repository';

@@ -7,6 +7,8 @@ Automatic observable list for angular cdk or material table
 
 ## Installation
 
+**Version >= 2.0.0 depends on angular >= 6. For older versions of angular use @webacad/observable-list@^1.0.**
+
 ```bash
 $ npm install --save @webacad/observable-list
 ```
